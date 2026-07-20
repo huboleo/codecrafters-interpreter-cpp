@@ -1,21 +1,18 @@
+#include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 
 std::string read_file_contents(const std::string& filename);
 
-int main(int argc, char *argv[]) {
-    // Disable output buffering
-    std::cout << std::unitbuf;
-    std::cerr << std::unitbuf;
-
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    std::cerr << "Logs from your program will appear here!" << std::endl;
+int main(int argc, char* argv[]) {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+    std::setvbuf(stderr, nullptr, _IONBF, 0);
 
     if (argc < 3) {
-        std::cerr << "Usage: ./your_program tokenize <filename>" << std::endl;
+        std::println(stderr, "Usage: ./your_program tokenize <filename>");
         return 1;
     }
 
@@ -23,17 +20,15 @@ int main(int argc, char *argv[]) {
 
     if (command == "tokenize") {
         std::string file_contents = read_file_contents(argv[2]);
-        
-        // TODO: Uncomment the code below to pass the first stage
-        // 
-        // if (!file_contents.empty()) {
-        //     std::cerr << "Scanner not implemented" << std::endl;
-        //     return 1;
-        // }
-        // std::cout << "EOF  null" << std::endl; // Placeholder, replace this line when implementing the scanner
-        
+
+        if (!file_contents.empty()) {
+            std::println(stderr, "Scanner not implemented");
+            return 1;
+        }
+        std::println("EOF  null"); // Placeholder, replace this line when implementing the scanner
+
     } else {
-        std::cerr << "Unknown command: " << command << std::endl;
+        std::println(stderr, "Unknown command: {}", command);
         return 1;
     }
 
@@ -43,7 +38,7 @@ int main(int argc, char *argv[]) {
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Error reading file: " << filename << std::endl;
+        std::println(stderr, "Error reading file: {}", filename);
         std::exit(1);
     }
 
