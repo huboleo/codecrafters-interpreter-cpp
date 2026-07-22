@@ -19,6 +19,8 @@ std::string literal_to_string(const std::variant<std::monostate, double, std::st
 
     return std::get<std::string>(literal);
 }
+
+void handle_string_literal() {}
 } // namespace
 
 std::string_view token_type_to_string(TokenType token_type) {
@@ -215,6 +217,26 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
         case '\n':
             _line++;
             break;
+        case '"': {
+            while (peek() != '"' && !is_at_end()) {
+                if (peek() == '\n') {
+                    _line++;
+                }
+                advance();
+            }
+
+            if (is_at_end()) {
+                report_error("Unterminated string.");
+                break;
+            }
+
+            // For closing "
+            advance();
+
+            auto value = _source_file_content.substr(_start + 1, _current - _start - 2);
+            add_token(TokenType::STRING, value);
+            break;
+        }
         default:
             report_error(std::format("Unexpected character: {}", current_char));
             break;
