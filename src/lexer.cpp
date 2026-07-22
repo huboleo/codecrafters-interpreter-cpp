@@ -28,6 +28,13 @@ std::string literal_to_string(const std::variant<std::monostate, double, std::st
 
 bool is_digit(char character) { return character >= '0' && character <= '9'; }
 
+bool is_alpha(char character) {
+    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+           character == '_';
+}
+
+bool is_alpha_numeric(char character) { return is_digit(character) || is_alpha(character); }
+
 } // namespace
 
 std::string_view token_type_to_string(TokenType token_type) {
@@ -267,6 +274,12 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
 
                 double value = std::stod(_source_file_content.substr(_start, _current - _start));
                 add_token(TokenType::NUMBER, value);
+            } else if (is_alpha(current_char)) {
+                while (is_alpha_numeric(peek())) {
+                    advance();
+                }
+
+                add_token(TokenType::IDENTIFIER);
             } else {
                 report_error(std::format("Unexpected character: {}", current_char));
             }
