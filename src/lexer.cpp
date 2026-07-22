@@ -178,8 +178,20 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
         case '*':
             add_token(TokenType::STAR);
             break;
+        case ';':
+            add_token(TokenType::SEMICOLON);
+            break;
         case '!':
             add_token(is_match('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
+            break;
+        case '=':
+            add_token(is_match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
+            break;
+        case '<':
+            add_token(is_match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
+            break;
+        case '>':
+            add_token(is_match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
             break;
         default:
             return std::unexpected<std::string>(get_error_message(_line, "Unexpected token"));
