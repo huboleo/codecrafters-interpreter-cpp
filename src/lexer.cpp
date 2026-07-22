@@ -199,6 +199,22 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
         case '>':
             add_token(is_match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
             break;
+        case '/':
+            if (is_match('/')) {
+                while (peek() != '\n' && !is_at_end()) {
+                    advance();
+                }
+            } else {
+                add_token(TokenType::SLASH);
+            }
+            break;
+        case ' ':
+        case '\r':
+        case '\t':
+            break;
+        case '\n':
+            _line++;
+            break;
         default:
             report_error(std::format("Unexpected character: {}", current_char));
             break;
