@@ -114,7 +114,7 @@ char Lexer::peek() {
     if (is_at_end()) {
         return '\0';
     }
-    return _source_file_content[_current + 1];
+    return _source_file_content[_current];
 }
 
 void Lexer::add_token(TokenType type, std::variant<std::monostate, double, std::string> literal) {
