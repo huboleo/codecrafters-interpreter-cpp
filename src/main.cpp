@@ -1,14 +1,11 @@
+#include "lexer.hpp"
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <print>
 #include <sstream>
 #include <string>
-
-enum class Token {
-    LEFT_PAREN,
-    RIGHT_PAREN,
-};
+#include <utility>
 
 std::string read_file_contents(const std::string& filename);
 
@@ -26,15 +23,8 @@ int main(int argc, char* argv[]) {
     if (command == "tokenize") {
         std::string file_contents = read_file_contents(argv[2]);
 
-        for (const auto& token : file_contents) {
-            if (token == '(') {
-                std::println("LEFT_PAREN ( null");
-            } else if (token == ')') {
-                std::println("RIGHT_PAREN ) null");
-            }
-        }
-        std::println("EOF  null"); // Placeholder, replace this line when implementing the scanner
-
+        Lexer lexer(std::move(file_contents));
+        auto tokens = lexer.tokenize();
     } else {
         std::println(stderr, "Unknown command: {}", command);
         return 1;
