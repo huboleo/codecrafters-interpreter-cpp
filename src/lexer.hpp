@@ -76,11 +76,12 @@ class Lexer {
     int _start = 0;
     int _current = 0;
     int _line = 1;
+    bool _has_error = false;
     char peek();
     char advance();
-    std::string get_error_message(int line, const std::string& message);
     void add_token(TokenType type);
     void add_token(TokenType type, std::variant<std::monostate, double, std::string> literal);
     bool is_at_end();
     bool is_match(char expected);
+    void report_error(const std::string& cause);
 };

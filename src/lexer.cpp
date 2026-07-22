@@ -110,10 +110,11 @@ Lexer::Lexer(std::string source) : _source_file_content(std::move(source)) {}
 
 char Lexer::advance() { return _source_file_content[_current++]; }
 
-char Lexer::peek() { return _source_file_content[_current + 1]; }
-
-std::string Lexer::get_error_message(int line, const std::string& message) {
-    return std::format("[line {}] Error: {}", line, message);
+char Lexer::peek() {
+    if (is_at_end()) {
+        return '\0';
+    }
+    return _source_file_content[_current + 1];
 }
 
 void Lexer::add_token(TokenType type, std::variant<std::monostate, double, std::string> literal) {
@@ -144,6 +145,11 @@ bool Lexer::is_match(char expected) {
 }
 
 void Lexer::add_token(TokenType type) { add_token(type, std::monostate{}); }
+
+void Lexer::report_error(const std::string& cause) {
+    std::println(stderr, "[line {}] Error: {}", _line, cause);
+    _has_error = true;
+}
 
 std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
 
@@ -194,9 +200,15 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
             add_token(is_match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
             break;
         default:
-            return std::unexpected<std::string>(get_error_message(_line, "Unexpected token"));
+            report_error(std::format("Unexpected character: {}", current_char));
+            break;
         }
     }
     add_token(TokenType::EOF_TOKEN);
+
+    if (_has_error) {
+        return std::unexpected<std::string>("Syntax error occured");
+    }
+
     return _tokens;
 }

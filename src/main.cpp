@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <print>
@@ -25,6 +26,9 @@ int main(int argc, char* argv[]) {
 
         Lexer lexer(std::move(file_contents));
         auto tokens = lexer.tokenize();
+        if (!tokens.has_value()) {
+            std::exit(65);
+        }
     } else {
         std::println(stderr, "Unknown command: {}", command);
         return 1;
