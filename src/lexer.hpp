@@ -78,6 +78,7 @@ class Lexer {
     int _line = 1;
     bool _has_error = false;
     char peek();
+    char peek_next();
     char advance();
     void add_token(TokenType type);
     void add_token(TokenType type, std::variant<std::monostate, double, std::string> literal);

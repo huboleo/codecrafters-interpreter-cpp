@@ -14,13 +14,20 @@ std::string literal_to_string(const std::variant<std::monostate, double, std::st
     }
 
     if (std::holds_alternative<double>(literal)) {
-        return std::to_string(std::get<double>(literal));
+        std::string text = std::format("{}", std::get<double>(literal));
+
+        if (text.find_first_of(".eE") == std::string::npos) {
+            text += ".0";
+        }
+
+        return text;
     }
 
     return std::get<std::string>(literal);
 }
 
-void handle_string_literal() {}
+bool is_digit(char character) { return character >= '0' && character <= '9'; }
+
 } // namespace
 
 std::string_view token_type_to_string(TokenType token_type) {
@@ -117,6 +124,13 @@ char Lexer::peek() {
         return '\0';
     }
     return _source_file_content[_current];
+}
+
+char Lexer::peek_next() {
+    if (_current + 1 >= _source_file_content.size()) {
+        return '\0';
+    }
+    return _source_file_content[_current + 1];
 }
 
 void Lexer::add_token(TokenType type, std::variant<std::monostate, double, std::string> literal) {
@@ -238,7 +252,24 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
             break;
         }
         default:
-            report_error(std::format("Unexpected character: {}", current_char));
+            if (is_digit(current_char)) {
+                while (is_digit(peek())) {
+                    advance();
+                }
+
+                if (peek() == '.' && is_digit(peek_next())) {
+                    advance();
+
+                    while (is_digit(peek())) {
+                        advance();
+                    }
+                }
+
+                double value = std::stod(_source_file_content.substr(_start, _current - _start));
+                add_token(TokenType::NUMBER, value);
+            } else {
+                report_error(std::format("Unexpected character: {}", current_char));
+            }
             break;
         }
     }
