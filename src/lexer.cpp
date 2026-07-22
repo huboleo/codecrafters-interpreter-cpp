@@ -279,7 +279,13 @@ std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
                     advance();
                 }
 
-                add_token(TokenType::IDENTIFIER);
+                auto value = _source_file_content.substr(_start, _current - _start);
+
+                if (keywords.contains(value)) {
+                    add_token(keywords.at(value));
+                } else {
+                    add_token(TokenType::IDENTIFIER);
+                }
             } else {
                 report_error(std::format("Unexpected character: {}", current_char));
             }

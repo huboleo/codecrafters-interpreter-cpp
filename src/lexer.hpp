@@ -3,6 +3,7 @@
 #include <expected>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -71,6 +72,14 @@ class Lexer {
     std::expected<std::vector<Token>, std::string> tokenize();
 
   private:
+    inline static const std::unordered_map<std::string_view, TokenType> keywords = {
+        {"and", TokenType::AND},     {"class", TokenType::CLASS},   {"else", TokenType::ELSE},
+        {"false", TokenType::FALSE}, {"for", TokenType::FOR},       {"fun", TokenType::FUN},
+        {"if", TokenType::IF},       {"nil", TokenType::NIL},       {"or", TokenType::OR},
+        {"print", TokenType::PRINT}, {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
+        {"this", TokenType::THIS},   {"true", TokenType::TRUE},     {"var", TokenType::VAR},
+        {"while", TokenType::WHILE},
+    };
     std::string _source_file_content;
     std::vector<Token> _tokens;
     int _start = 0;
