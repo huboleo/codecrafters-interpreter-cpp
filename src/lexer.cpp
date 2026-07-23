@@ -140,7 +140,59 @@ char Lexer::peek_next() {
     return _source_file_content[_current + 1];
 }
 
-void Lexer::add_token(TokenType type, std::variant<std::monostate, double, std::string> literal) {
+void Lexer::parse_string() {
+    while (peek() != '"' && !is_at_end()) {
+        if (peek() == '\n') {
+            _line++;
+        }
+        advance();
+    }
+
+    if (is_at_end()) {
+        report_error("Unterminated string.");
+        return;
+    }
+
+    // For closing "
+    advance();
+
+    auto value = _source_file_content.substr(_start + 1, _current - _start - 2);
+    add_token(TokenType::STRING, value);
+}
+
+void Lexer::parse_number() {
+    while (is_digit(peek())) {
+        advance();
+    }
+
+    if (peek() == '.' && is_digit(peek_next())) {
+        advance();
+
+        while (is_digit(peek())) {
+            advance();
+        }
+    }
+
+    double value = std::stod(_source_file_content.substr(_start, _current - _start));
+    add_token(TokenType::NUMBER, value);
+}
+
+void Lexer::parse_identifier() {
+    while (is_alpha_numeric(peek())) {
+        advance();
+    }
+
+    auto value = _source_file_content.substr(_start, _current - _start);
+
+    if (keywords.contains(value)) {
+        add_token(keywords.at(value));
+    } else {
+        add_token(TokenType::IDENTIFIER);
+    }
+}
+
+void Lexer::add_token(TokenType type,
+                      const std::variant<std::monostate, double, std::string>& literal) {
     auto lexeme =
         type == TokenType::EOF_TOKEN ? "" : _source_file_content.substr(_start, _current - _start);
     std::println("{} {} {}", token_type_to_string(type), lexeme, literal_to_string(literal));
@@ -174,123 +226,89 @@ void Lexer::report_error(const std::string& cause) {
     _has_error = true;
 }
 
+void Lexer::scan_token() {
+    char current_char = advance();
+
+    switch (current_char) {
+    case '(':
+        add_token(TokenType::LEFT_PAREN);
+        break;
+    case ')':
+        add_token(TokenType::RIGHT_PAREN);
+        break;
+    case '{':
+        add_token(TokenType::LEFT_BRACE);
+        break;
+    case '}':
+        add_token(TokenType::RIGHT_BRACE);
+        break;
+    case ',':
+        add_token(TokenType::COMMA);
+        break;
+    case '.':
+        add_token(TokenType::DOT);
+        break;
+    case '-':
+        add_token(TokenType::MINUS);
+        break;
+    case '+':
+        add_token(TokenType::PLUS);
+        break;
+    case '*':
+        add_token(TokenType::STAR);
+        break;
+    case ';':
+        add_token(TokenType::SEMICOLON);
+        break;
+    case '!':
+        add_token(is_match('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
+        break;
+    case '=':
+        add_token(is_match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
+        break;
+    case '<':
+        add_token(is_match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
+        break;
+    case '>':
+        add_token(is_match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
+        break;
+    case '/':
+        if (is_match('/')) {
+            while (peek() != '\n' && !is_at_end()) {
+                advance();
+            }
+        } else {
+            add_token(TokenType::SLASH);
+        }
+        break;
+    case ' ':
+    case '\r':
+    case '\t':
+        break;
+    case '\n':
+        _line++;
+        break;
+    case '"': {
+        parse_string();
+        break;
+    }
+    default:
+        if (is_digit(current_char)) {
+            parse_number();
+        } else if (is_alpha(current_char)) {
+            parse_identifier();
+        } else {
+            report_error(std::format("Unexpected character: {}", current_char));
+        }
+        break;
+    }
+}
+
 std::expected<std::vector<Token>, std::string> Lexer::tokenize() {
 
     while (!is_at_end()) {
         _start = _current;
-        char current_char = advance();
-        switch (current_char) {
-        case '(':
-            add_token(TokenType::LEFT_PAREN);
-            break;
-        case ')':
-            add_token(TokenType::RIGHT_PAREN);
-            break;
-        case '{':
-            add_token(TokenType::LEFT_BRACE);
-            break;
-        case '}':
-            add_token(TokenType::RIGHT_BRACE);
-            break;
-        case ',':
-            add_token(TokenType::COMMA);
-            break;
-        case '.':
-            add_token(TokenType::DOT);
-            break;
-        case '-':
-            add_token(TokenType::MINUS);
-            break;
-        case '+':
-            add_token(TokenType::PLUS);
-            break;
-        case '*':
-            add_token(TokenType::STAR);
-            break;
-        case ';':
-            add_token(TokenType::SEMICOLON);
-            break;
-        case '!':
-            add_token(is_match('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
-            break;
-        case '=':
-            add_token(is_match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
-            break;
-        case '<':
-            add_token(is_match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
-            break;
-        case '>':
-            add_token(is_match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
-            break;
-        case '/':
-            if (is_match('/')) {
-                while (peek() != '\n' && !is_at_end()) {
-                    advance();
-                }
-            } else {
-                add_token(TokenType::SLASH);
-            }
-            break;
-        case ' ':
-        case '\r':
-        case '\t':
-            break;
-        case '\n':
-            _line++;
-            break;
-        case '"': {
-            while (peek() != '"' && !is_at_end()) {
-                if (peek() == '\n') {
-                    _line++;
-                }
-                advance();
-            }
-
-            if (is_at_end()) {
-                report_error("Unterminated string.");
-                break;
-            }
-
-            // For closing "
-            advance();
-
-            auto value = _source_file_content.substr(_start + 1, _current - _start - 2);
-            add_token(TokenType::STRING, value);
-            break;
-        }
-        default:
-            if (is_digit(current_char)) {
-                while (is_digit(peek())) {
-                    advance();
-                }
-
-                if (peek() == '.' && is_digit(peek_next())) {
-                    advance();
-
-                    while (is_digit(peek())) {
-                        advance();
-                    }
-                }
-
-                double value = std::stod(_source_file_content.substr(_start, _current - _start));
-                add_token(TokenType::NUMBER, value);
-            } else if (is_alpha(current_char)) {
-                while (is_alpha_numeric(peek())) {
-                    advance();
-                }
-
-                auto value = _source_file_content.substr(_start, _current - _start);
-
-                if (keywords.contains(value)) {
-                    add_token(keywords.at(value));
-                } else {
-                    add_token(TokenType::IDENTIFIER);
-                }
-            } else {
-                report_error(std::format("Unexpected character: {}", current_char));
-            }
-            break;
-        }
+        scan_token();
     }
     add_token(TokenType::EOF_TOKEN);
 

@@ -86,11 +86,16 @@ class Lexer {
     int _current = 0;
     int _line = 1;
     bool _has_error = false;
+    void scan_token();
+    void parse_string();
+    void parse_number();
+    void parse_identifier();
     char peek();
     char peek_next();
     char advance();
     void add_token(TokenType type);
-    void add_token(TokenType type, std::variant<std::monostate, double, std::string> literal);
+    void add_token(TokenType type,
+                   const std::variant<std::monostate, double, std::string>& literal);
     bool is_at_end();
     bool is_match(char expected);
     void report_error(const std::string& cause);
