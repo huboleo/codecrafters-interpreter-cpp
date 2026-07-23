@@ -2,7 +2,7 @@
 
 A lexer for the [Lox](https://craftinginterpreters.com/the-lox-language.html) language, written from scratch in C++23.
 
-This project was built following CodeCrafters' [Build Your Own Interpreter](https://app.codecrafters.io/courses/interpreter/overview) challenge and the scanning chapter of *Crafting Interpreters*.
+This project was built following codecrafters interpreter challenge and the scanning chapter of [Crafting Interpreters](https://craftinginterpreters.com/) book by Robert Nystrom.
 
 ## Features
 
